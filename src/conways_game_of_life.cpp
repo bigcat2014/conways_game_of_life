@@ -191,7 +191,7 @@ void drawUnit(int x, int y)
   glEnd();
 }
 
-void drawCells(cgl::CellState *grid)
+void drawCells(std::shared_ptr<const std::vector<cgl::CellState>> grid)
 {
   std::pair grid_size = game.getSize();
   for (int x = 0; x < grid_size.first; x++)
@@ -199,7 +199,7 @@ void drawCells(cgl::CellState *grid)
     for (int y = 0; y < grid_size.second; y++)
     {
       int index = y * grid_size.first + x;
-      drawCell(x, y, grid[index]);
+      drawCell(x, y, (*grid)[index]);
     }
   }
 }

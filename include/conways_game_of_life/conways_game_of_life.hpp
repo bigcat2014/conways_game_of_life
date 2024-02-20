@@ -55,7 +55,7 @@ void drawUnit(int x, int y);
 //! \brief Draws all of the game board cells.
 //!
 //! \param [in] grid The grid of cells in the game board to draw.
-void drawCells(cgl::CellState *grid);
+void drawCells(std::shared_ptr<const std::vector<cgl::CellState>> grid);
 
 //! \brief Draws a single game board cell.
 //!

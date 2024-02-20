@@ -1,7 +1,9 @@
 #pragma once
-#include <array>
+// #include <array>
 #include <cassert>
+#include <memory>
 #include <utility>
+#include <vector>
 
 #include <conways_game_of_life/util.hpp>
 
@@ -18,7 +20,20 @@ class ConwaysGameOfLife
 {
 public:
   //! \brief Initialize the Conway's Game of Life board.
-  ConwaysGameOfLife() { init(); }
+  ConwaysGameOfLife()
+  {
+    grid1_ = std::make_shared<std::vector<CellState>>(C*R);
+    grid2_ = std::make_shared<std::vector<CellState>>(C*R);
+
+    pause_ = true;
+    grid_ = false;
+
+    current_grid_ = grid_ ? grid1_ : grid2_;
+    next_grid_ = grid_ ? grid2_ : grid1_;
+
+    // Initialize all cells off.
+    clear();
+  }
 
   //! \brief Get the size of the game board.
   //! \return std::pair<int, int> The number of columns and rows in the board.
@@ -26,21 +41,21 @@ public:
 
   //! \brief Get the game grid.
   //! \return CellState* The 1D array representing the cells.
-  CellState* getGrid() { return current_grid_; }
+  std::shared_ptr<const std::vector<CellState>> getGrid() { return current_grid_; }
 
   //! \brief Toggle the paused state of the game board.
   //! Toggle updates to the game board. When paused, no new generations will be created.
   void togglePause() { pause_ = !pause_; }
 
-  void setCell(int x, int y) { int index = convert_indices(x, y, C); current_grid_[index] = CellState::ON; }
-  void unsetCell(int x, int y) { int index = convert_indices(x, y, C); current_grid_[index] = CellState::OFF; }
+  void setCell(int x, int y) { int index = convert_indices(x, y, C); (*current_grid_)[index] = CellState::ON; }
+  void unsetCell(int x, int y) { int index = convert_indices(x, y, C); (*current_grid_)[index] = CellState::OFF; }
   void clear()
   {
     // Set all cells off.
     for (int i = 0; i < C*R; i++)
     {
-        grid1_[i] = CellState::OFF;
-        grid2_[i] = CellState::OFF;
+        (*grid1_)[i] = CellState::OFF;
+        (*grid2_)[i] = CellState::OFF;
     }
   }
 
@@ -59,24 +74,24 @@ public:
         // Count the number of neighbors that are alive
         int alive = countAliveNeighbors(x, y);
 
-        next_grid_[index] = current_grid_[index];
-        if (current_grid_[index] == CellState::OFF)
+        (*next_grid_)[index] = (*current_grid_)[index];
+        if ((*current_grid_)[index] == CellState::OFF)
         {
           // Birth rule
-          if (alive == 3) { next_grid_[index] = CellState::ON; }
+          if (alive == 3) { (*next_grid_)[index] = CellState::ON; }
         }
-        else if (current_grid_[index] == CellState::ON)
+        else if ((*current_grid_)[index] == CellState::ON)
         {
           // Death rule
-          if (alive <= 1 || alive >= 4) { next_grid_[index] = CellState::OFF; }
+          if (alive <= 1 || alive >= 4) { (*next_grid_)[index] = CellState::OFF; }
         }
       }
     }
 
     // Swap which grid we're modifying
     grid_ = !grid_;
-    current_grid_ = grid_ ? grid1_.data() : grid2_.data();
-    next_grid_ = grid_ ? grid2_.data() : grid1_.data();
+    current_grid_ = grid_ ? grid1_ : grid2_;
+    next_grid_ = grid_ ? grid2_ : grid1_;
   }
 
 private:
@@ -84,31 +99,19 @@ private:
   std::pair<int, int> size_ = std::make_pair(C, R);
 
   //! \brief A grid to store the state of all the cells in the game.
-  std::array<CellState, C*R> grid1_;
+  std::shared_ptr<std::vector<CellState>> grid1_;
   //! \brief A grid to store the state of all the cells in the game.
-  std::array<CellState, C*R> grid2_;
+  std::shared_ptr<std::vector<CellState>> grid2_;
 
   //! \brief Which grid to use as the current grid, toggles on each update.
   bool grid_;
   //! \brief A pointer to the current grid.
-  CellState *current_grid_;
+  std::shared_ptr<std::vector<CellState>> current_grid_;
   //! \brief A pointer to the grid used for the next generation.
-  CellState *next_grid_;
+  std::shared_ptr<std::vector<CellState>> next_grid_;
 
   //! \brief Pause board updates.
   bool pause_;
-
-  //! \brief Initialize the game board.
-  void init()
-  {
-    pause_ = true;
-    grid_ = false;
-    current_grid_ = grid_ ? grid1_.data() : grid2_.data();
-    next_grid_ = grid_ ? grid2_.data() : grid1_.data();
-
-    // Initialize all cells off.
-    clear();
-  }
 
   //! \brief Count the number of alive cells adjacent to the current cell.
   //!
@@ -145,7 +148,7 @@ private:
         int neighbor_index = convert_indices(neighbor_x, neighbor_y, C);
 
         // Increment counter if neighbor cell is alive
-        if (current_grid_[neighbor_index] == CellState::ON) { alive++; }
+        if ((*current_grid_)[neighbor_index] == CellState::ON) { alive++; }
       }
     }
 
