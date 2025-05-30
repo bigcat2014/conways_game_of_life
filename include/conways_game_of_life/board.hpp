@@ -116,10 +116,10 @@ private:
   //! \param [in] x The X coordinate of the cell to count the neighbors of.
   //! \param [in] y The Y coordinate of the cell to count the neighbors of.
   //! \return int The number of neighbors adjacent to the current cell.
-  int countAliveNeighbors(int x, int y)
+  unsigned int countAliveNeighbors(int x, int y)
   {
     // Initialize counter
-    int alive = 0;
+    unsigned int alive = 0;
 
     // Loop over X offsets in the range [-1, 1]
     for (int x_off = -1; x_off <= 1; x_off++)
@@ -143,7 +143,7 @@ private:
         if (x_off == 0 && y_off == 0) { continue; }
 
         // Convert (x, y) coords to 1D array index
-        int neighbor_index = convert_indices(neighbor_x, neighbor_y, C);
+        unsigned int neighbor_index = convert_indices(neighbor_x, neighbor_y, C);
 
         // Increment counter if neighbor cell is alive
         if ((*current_grid_)[neighbor_index] == CellState::ON) { alive++; }
